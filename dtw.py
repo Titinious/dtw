@@ -1,7 +1,7 @@
 from numpy import array, zeros, argmin, inf, equal, ndim
 from scipy.spatial.distance import cdist
 
-def dtw(x, y, dist):
+def dtw(x, y, dist, is_1D):
     """
     Computes Dynamic Time Warping (DTW) of two sequences.
 
@@ -20,7 +20,10 @@ def dtw(x, y, dist):
     D1 = D0[1:, 1:] # view
     for i in range(r):
         for j in range(c):
-            D1[i, j] = dist(x[i], y[j])
+            if is_1D:
+                D1[i, j] = dist(x[i], y[j])
+            else:
+                D1[i, j] = dist([x[i]], [y[j]])
     C = D1.copy()
     for i in range(r):
         for j in range(c):
@@ -86,16 +89,19 @@ def _traceback(D):
     return array(p), array(q)
 
 if __name__ == '__main__':
+
     if 0: # 1-D numeric
         from sklearn.metrics.pairwise import manhattan_distances
         x = [0, 0, 1, 1, 2, 4, 2, 1, 2, 0]
         y = [1, 1, 1, 2, 2, 2, 2, 3, 2, 0]
         dist_fun = manhattan_distances
+        is_1D = True
     elif 0: # 2-D numeric
         from sklearn.metrics.pairwise import euclidean_distances
         x = [[0, 0], [0, 1], [1, 1], [1, 2], [2, 2], [4, 3], [2, 3], [1, 1], [2, 2], [0, 1]]
         y = [[1, 0], [1, 1], [1, 1], [2, 1], [4, 3], [4, 3], [2, 3], [3, 1], [1, 2], [1, 0]]
         dist_fun = euclidean_distances
+        is_1D = False
     else: # 1-D list of strings
         from nltk.metrics.distance import edit_distance
         #x = ['we', 'shelled', 'clams', 'for', 'the', 'chowder']
@@ -105,7 +111,8 @@ if __name__ == '__main__':
         #x = 'we talked about the situation'.split()
         #y = 'we talked about the situation'.split()
         dist_fun = edit_distance
-    dist, cost, acc, path = dtw(x, y, dist_fun)
+        is_1D = True
+    dist, cost, acc, path = dtw(x, y, dist_fun, is_1D)
 
     # vizualize
     from matplotlib import pyplot as plt
